@@ -1,0 +1,3 @@
+[submodule "play-music-lyrics-fetcher"]
+	path = play-music-lyrics-fetcher
+	url = git@github.com:erichlotto/play-music-lyrics-fetcher.git

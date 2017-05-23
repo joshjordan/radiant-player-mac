@@ -78,6 +78,10 @@ var playbackSelectors = exports.playbackSelectors = {
   progress: '#material-player-progress'
 };
 
+var podcastSelectors = exports.podcastSelectors = {
+  podcast: '.now-playing-actions'
+};
+
 var nowPlayingSelectors = exports.nowPlayingSelectors = {
   albumArt: '#playerBarArt',
   albumName: '.player-album',
@@ -92,8 +96,10 @@ var controlsSelectors = exports.controlsSelectors = {
   playPause: '[data-id="play-pause"]',
   repeat: '[data-id="repeat"]',
   rewind: '[data-id="rewind"]',
-  shuffle: '[data-id="shuffle"]',
-  progress: '#material-player-progress'
+  shuffle: '#player [data-id="shuffle"]',
+  progress: '#material-player-progress',
+  forwardThirty: '[data-id="forward-30"]',
+  rewindTen: '[data-id="rewind-10"]'
 };
 
 var ratingSelectors = exports.ratingSelectors = {
@@ -171,7 +177,7 @@ var GMusic = function (_Emitter) {
   function GMusic() {
     _classCallCheck(this, GMusic);
 
-    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(GMusic).call(this));
+    var _this = _possibleConstructorReturn(this, (GMusic.__proto__ || Object.getPrototypeOf(GMusic)).call(this));
 
     Object.keys(namespaces).forEach(function (namespaceName) {
       var namespaceClasses = namespaces[namespaceName];
@@ -231,7 +237,7 @@ var ExtrasNamespace = function (_GMusicNamespace) {
   _inherits(ExtrasNamespace, _GMusicNamespace);
 
   function ExtrasNamespace() {
-    var _Object$getPrototypeO;
+    var _ref;
 
     _classCallCheck(this, ExtrasNamespace);
 
@@ -239,7 +245,7 @@ var ExtrasNamespace = function (_GMusicNamespace) {
       args[_key] = arguments[_key];
     }
 
-    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(ExtrasNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+    var _this = _possibleConstructorReturn(this, (_ref = ExtrasNamespace.__proto__ || Object.getPrototypeOf(ExtrasNamespace)).call.apply(_ref, [this].concat(args)));
 
     _this.addMethods(['getTrackURL']);
     return _this;
@@ -315,7 +321,7 @@ var PlaybackNamespace = function (_GMusicNamespace) {
   _inherits(PlaybackNamespace, _GMusicNamespace);
 
   function PlaybackNamespace() {
-    var _Object$getPrototypeO;
+    var _ref;
 
     _classCallCheck(this, PlaybackNamespace);
 
@@ -323,12 +329,12 @@ var PlaybackNamespace = function (_GMusicNamespace) {
       args[_key] = arguments[_key];
     }
 
-    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(PlaybackNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+    var _this = _possibleConstructorReturn(this, (_ref = PlaybackNamespace.__proto__ || Object.getPrototypeOf(PlaybackNamespace)).call.apply(_ref, [this].concat(args)));
 
     _this._mapSelectors(_selectors.playbackSelectors);
     _this._hookEvents();
 
-    _this.addMethods(['getCurrentTime', 'setCurrentTime', 'getTotalTime', 'getCurrentTrack', 'isPlaying', 'getPlaybackState', 'playPause', 'rewind', 'forward', 'getShuffle', 'setShuffle', 'toggleShuffle', 'getRepeat', 'setRepeat', 'toggleRepeat', 'toggleVisualization']);
+    _this.addMethods(['getCurrentTime', 'setCurrentTime', 'getTotalTime', 'getCurrentTrack', 'isPlaying', 'getPlaybackState', 'playPause', 'rewind', 'forward', 'getShuffle', 'setShuffle', 'toggleShuffle', 'getRepeat', 'setRepeat', 'toggleRepeat', 'toggleVisualization', 'isPodcast', 'forwardThirty', 'rewindTen']);
     return _this;
   }
 
@@ -462,6 +468,27 @@ var PlaybackNamespace = function (_GMusicNamespace) {
     value: function toggleRepeat() {
       document.querySelector(_selectors.controlsSelectors.repeat).click();
     }
+  }, {
+    key: 'isPodcast',
+    value: function isPodcast() {
+      return document.querySelector(_selectors.podcastSelectors.podcast).classList.contains('podcast');
+    }
+  }, {
+    key: 'rewindTen',
+    value: function rewindTen() {
+      var elPodcastRwd = document.querySelector(_selectors.controlsSelectors.rewindTen);
+      if (elPodcastRwd) {
+        elPodcastRwd.click();
+      }
+    }
+  }, {
+    key: 'forwardThirty',
+    value: function forwardThirty() {
+      var elPodcastFwd = document.querySelector(_selectors.controlsSelectors.forwardThirty);
+      if (elPodcastFwd) {
+        elPodcastFwd.click();
+      }
+    }
 
     // Taken from the Google Play Music page
 
@@ -543,6 +570,7 @@ var PlaybackNamespace = function (_GMusicNamespace) {
         attributes: true
       });
 
+      // Play/Pause Event
       var lastMode = void 0;
       new MutationObserver(function (mutations) {
         mutations.forEach(function (m) {
@@ -559,6 +587,29 @@ var PlaybackNamespace = function (_GMusicNamespace) {
       }).observe(document.querySelector(_selectors.controlsSelectors.playPause), {
         attributes: true
       });
+
+      // Podcast Event
+      var elPodcastFwd = document.querySelector(_selectors.controlsSelectors.forwardThirty);
+      if (elPodcastFwd) {
+        (function () {
+          var lastIsPodcast = void 0;
+          new MutationObserver(function (mutations) {
+            mutations.forEach(function (m) {
+              if (m.target.dataset.id === 'forward-30') {
+                var currentIsPodcast = _this2.isPodcast();
+
+                // If the mode has changed, then update it
+                if (currentIsPodcast !== lastIsPodcast) {
+                  _this2.emit('change:podcast', currentIsPodcast);
+                  lastIsPodcast = currentIsPodcast;
+                }
+              }
+            });
+          }).observe(elPodcastFwd, {
+            attributes: true
+          });
+        })();
+      }
     }
   }]);
 
@@ -613,7 +664,7 @@ var RatingNamespace = function (_GMusicNamespace) {
   _inherits(RatingNamespace, _GMusicNamespace);
 
   function RatingNamespace() {
-    var _Object$getPrototypeO;
+    var _ref;
 
     _classCallCheck(this, RatingNamespace);
 
@@ -621,7 +672,7 @@ var RatingNamespace = function (_GMusicNamespace) {
       args[_key] = arguments[_key];
     }
 
-    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(RatingNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+    var _this = _possibleConstructorReturn(this, (_ref = RatingNamespace.__proto__ || Object.getPrototypeOf(RatingNamespace)).call.apply(_ref, [this].concat(args)));
 
     _this._mapSelectors(_selectors.ratingSelectors);
     _this._hookEvents();
@@ -746,7 +797,7 @@ var VolumeNamespace = function (_GMusicNamespace) {
   _inherits(VolumeNamespace, _GMusicNamespace);
 
   function VolumeNamespace() {
-    var _Object$getPrototypeO;
+    var _ref;
 
     _classCallCheck(this, VolumeNamespace);
 
@@ -754,7 +805,7 @@ var VolumeNamespace = function (_GMusicNamespace) {
       args[_key] = arguments[_key];
     }
 
-    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(VolumeNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+    var _this = _possibleConstructorReturn(this, (_ref = VolumeNamespace.__proto__ || Object.getPrototypeOf(VolumeNamespace)).call.apply(_ref, [this].concat(args)));
 
     _this._mapSelectors(_selectors.volumeSelectors);
     _this._hookEvents();
@@ -783,7 +834,7 @@ var VolumeNamespace = function (_GMusicNamespace) {
   }, {
     key: 'increaseVolume',
     value: function increaseVolume() {
-      var amount = arguments.length <= 0 || arguments[0] === undefined ? 5 : arguments[0];
+      var amount = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 5;
 
       this._assertVolume(this._volumeSliderEl.value + amount);
       this._volumeSliderEl.value += amount;
@@ -791,7 +842,7 @@ var VolumeNamespace = function (_GMusicNamespace) {
   }, {
     key: 'decreaseVolume',
     value: function decreaseVolume() {
-      var amount = arguments.length <= 0 || arguments[0] === undefined ? 5 : arguments[0];
+      var amount = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 5;
 
       this._assertVolume(this._volumeSliderEl.value - amount);
       this._volumeSliderEl.value -= amount;
@@ -824,20 +875,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Track = function () {
   function Track(_ref) {
-    var id = _ref.id;
-    var title = _ref.title;
-    var albumArt = _ref.albumArt;
-    var artist = _ref.artist;
-    var album = _ref.album;
-    var _ref$index = _ref.index;
-    var index = _ref$index === undefined ? 1 : _ref$index;
-    var duration = _ref.duration;
-    var _ref$playCount = _ref.playCount;
-    var playCount = _ref$playCount === undefined ? 0 : _ref$playCount;
-    var artistId = _ref.artistId;
-    var artistImage = _ref.artistImage;
-    var albumArtist = _ref.albumArtist;
-    var albumId = _ref.albumId;
+    var id = _ref.id,
+        title = _ref.title,
+        albumArt = _ref.albumArt,
+        artist = _ref.artist,
+        album = _ref.album,
+        _ref$index = _ref.index,
+        index = _ref$index === undefined ? 1 : _ref$index,
+        duration = _ref.duration,
+        _ref$playCount = _ref.playCount,
+        playCount = _ref$playCount === undefined ? 0 : _ref$playCount,
+        artistId = _ref.artistId,
+        artistImage = _ref.artistImage,
+        albumArtist = _ref.albumArtist,
+        albumId = _ref.albumId;
 
     _classCallCheck(this, Track);
 
@@ -1552,31 +1603,6 @@ function isUndefined(arg) {
 }
 
 },{}],12:[function(_dereq_,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
-},{}],13:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1640,6 +1666,31 @@ process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
+
+},{}],13:[function(_dereq_,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
 
 },{}],14:[function(_dereq_,module,exports){
 module.exports = function isBuffer(arg) {
@@ -2238,6 +2289,6 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,_dereq_("qC859L"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":14,"inherits":12,"qC859L":13}]},{},[3])
+},{"./support/isBuffer":14,"inherits":13,"qC859L":12}]},{},[3])
 (3)
 });

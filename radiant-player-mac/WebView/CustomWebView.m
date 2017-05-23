@@ -77,6 +77,7 @@
 {
     [appDelegate webView:sender runJavaScriptAlertPanelWithMessage:message initiatedByFrame:frame];
 }
+    
 
 - (NSURLRequest *)webView:(WebView *)sender resource:(id)identifier willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)redirectResponse fromDataSource:(WebDataSource *)dataSource
 {

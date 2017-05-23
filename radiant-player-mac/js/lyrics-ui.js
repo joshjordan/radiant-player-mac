@@ -61,6 +61,10 @@ function scaleWindowToFit(){
     } else {
         $("#lyrics").removeClass('break-line');
     }
+    $(window).on('resize', function() {
+      $('#lyrics').css('max-height', ($('body').outerHeight() - 300) + 'px')
+    });
+    $(window).resize();
 }
 
 
@@ -125,136 +129,3 @@ function displaySearchFields(display){
         $("#input_track").blur();
     }
 }
-
-
-
-/**
- * Event binding
- */
-var visibilityTimeout;
-var lastScrollMilis; // The autoscroll triggers the mousemove event, so we need a workaround
-$(window).mousemove(function (event) {
-    var container = $("#tools");
-    if (!container.is(event.target) // if the target of the move isn't the container...
-        && container.has(event.target).length === 0) // ... nor a descendant of the container
-    {
-        var currentTimeMilis = new Date().getTime();
-        if (currentTimeMilis < lastScrollMilis + 50 &&
-        !($("#search_fields").hasClass("visible"))) {
-            $("#tools").removeClass("hide");
-            clearTimeout(visibilityTimeout);
-            visibilityTimeout = setTimeout(function () {
-                $("#tools").addClass("hide");
-            }, 3000);
-        }
-        lastScrollMilis = currentTimeMilis;
-    }
-});
-
-$(document).keypress(function (e) {
-    console.log(e.keyCode)
-    switch (e.keyCode){
-        case 13: // ENTER
-            search($("#input_artist").val(), $("#input_track").val());
-            displaySearchFields(false);
-            break;
-        case 43: // +
-            delayUp();
-            break;
-        case 45: // -
-            delayDown();
-            break;
-    }
-});
-
-$(window).bind('mousewheel DOMMouseScroll mousedown', function (event) {
-    var container = $("#tools");
-    if (!container.is(event.target) // if the target of the click isn't the container...
-        && container.has(event.target).length === 0) // ... nor a descendant of the container
-    {
-        if(timmingSupport && currentLyrics.timmed.length > 1) {
-            $('html, body').stop(true);
-            autoScroll = false;
-            $("#bt_autoscroll").show();
-        }
-    }
-});
-
-
-
-/**
- * Run when page finished loading
- */
-$(document).ready(function () {
-    if (docked) {
-        $("#bt_newwindow").click(openWindow);
-    } else {
-        $("#bt_newwindow").hide();
-    }
-    turnOnAutoScroll();
-    $("#bt_autoscroll").click(turnOnAutoScroll);
-    $("#tools").mouseenter(function () {
-        clearTimeout(visibilityTimeout);
-    }).mouseleave(function () {
-        $(window).mousemove();
-    });
-    $('#tools').bind('mousewheel', function (event) {
-        event.preventDefault();
-    });
-    $('#delay_label').bind('mousewheel', function (event) {
-        if (event.originalEvent.wheelDelta >= 0) {
-            delayUp();
-        }
-        else {
-            delayDown();
-        }
-    }).bind('dblclick', function () {
-        setDelay(0);
-        smoothScrool();
-    });
-    $('#bt_delay_fwd').mousedown(function () {
-        delayUp();
-        timeoutId = setTimeout(function () {
-            intervalId = setInterval(function () {
-                delayUp()
-            }, 100);
-        }, 500);
-    }).bind('mouseup mouseleave', function () {
-        if (typeof intervalId !== 'undefined')clearInterval(intervalId);
-        if (typeof timeoutId !== 'undefined')clearTimeout(timeoutId);
-    });
-    $('#bt_delay_bwd').mousedown(function () {
-        delayDown();
-        timeoutId = setTimeout(function () {
-            intervalId = setInterval(function () {
-                delayDown()
-            }, 100);
-        }, 500);
-    }).bind('mouseup mouseleave', function () {
-        if (typeof intervalId !== 'undefined')clearInterval(intervalId);
-        if (typeof timeoutId !== 'undefined')clearTimeout(timeoutId);
-    });
-    $(window).click(function(evt) {
-        if(evt.target.id != "bt_search" &&
-        evt.target.id != "input_artist" &&
-        evt.target.id != "input_track"){
-            displaySearchFields(false);
-        }
-    });
-
-    $("#bt_search").click(function(evt){
-      if($("#search_fields").hasClass("visible")){
-            displaySearchFields(false);
-        } else {
-            displaySearchFields(true);
-        }
-        evt.stopPropagation();
-    })
-    $("#bt_delay").mouseenter(function(){
-        $("#delay_controllers").addClass("visible")
-    });
-    $("#delay_panel").mouseleave(function(){
-        $("#delay_controllers").removeClass("visible")
-    });
-    displaySearchFields(false);
-});

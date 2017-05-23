@@ -79,6 +79,7 @@
     min-width: 350px;
     white-space: pre;
     display: inline-block;
+    overflow-y: scroll;
 }
 
 #bt-wrapper .lyrics_line {

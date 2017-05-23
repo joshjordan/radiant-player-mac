@@ -986,6 +986,8 @@ static CGEventRef event_tap_callback(CGEventTapProxy proxy,
         [self evaluateJavaScriptFile:@"lyrics_provider_chooser"];
         [self evaluateJavaScriptFile:@"vagalume"];
         [self evaluateJavaScriptFile:@"lyrics-main"];
+        [self evaluateJavaScriptFile:@"lyrics-ui"];
+        [self applyCSSFile:@"lyrics"];
     }
 
     [self evaluateJavaScriptFile:@"styles"];

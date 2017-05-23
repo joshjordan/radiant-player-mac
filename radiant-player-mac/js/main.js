@@ -21,6 +21,7 @@ if (typeof window.gmusic === 'undefined') {
     GoogleMusicApp.notifySong(
       track.title, track.artist, track.album, track.albumArt, track.duration
     );
+    checkForNewTrack();
   });
 
   gmusic.on('change:shuffle', function(mode) {
